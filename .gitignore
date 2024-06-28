@@ -1,0 +1,11 @@
+# .gitignore
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore other common files
+*.swp
+*.swo
+*.bak
+*.log
