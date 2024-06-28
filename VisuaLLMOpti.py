@@ -1,5 +1,4 @@
 import time
-from torch import qscheme
 from tqdm import tqdm
 
 import numpy as np
