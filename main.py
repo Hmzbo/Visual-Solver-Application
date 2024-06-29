@@ -23,7 +23,7 @@ st.subheader(":red[Solve Problems & Generate Insightful Reports]")
 
 
 @st.cache_resource
-def verify_gemini_key(key):
+def verify_gemini_key(key) -> tuple[genai.GenerativeModel, genai.GenerativeModel]:
     """
     A function that verifies the Gemini key by configuring the API key,
     creating two GenerativeModel instances, test the key, setting the API key
@@ -34,7 +34,7 @@ def verify_gemini_key(key):
 
     Returns:
         Tuple[genai.GenerativeModel, genai.GenerativeModel]: A tuple containing
-        two GenerativeModel instances if the verification is successful.
+        two Gemini instances (v1 and v1.5), if the verification is successful.
 
     Raises:
         Exception: If an error occurs during the verification process, an exception is raised.

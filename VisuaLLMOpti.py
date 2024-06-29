@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.figure_factory as ff
 import plotly.graph_objs as go
+import scipy
 from google.generativeai.types import HarmBlockThreshold, HarmCategory
 from PIL import Image
 from plotly.subplots import make_subplots
@@ -105,7 +106,7 @@ class OptProbVisualSolver:
         self.y_solv_precision = min(y_precision * solv_precision_factor, 5000)
 
     # Define objective function
-    def objective_function(self, variables: Union[list, tuple, np.ndarray]):
+    def objective_function(self, variables: Union[list, tuple, np.ndarray]) -> float:
         """Evaluates the objective function using the given variables.
 
         Parameters:
@@ -138,7 +139,7 @@ class OptProbVisualSolver:
         return eval(self.constraint_func_string)
 
     # Define a function to test domains
-    def _test_func_domains(self):
+    def _test_func_domains(self) -> None:
         """Test the objective and constraint functions by evaluating them at
         the first point in the x and y domains, which will be used as
         initialization for numerical solver.
@@ -180,7 +181,7 @@ class OptProbVisualSolver:
 
     # Define a function to calculate precision based on range
     @staticmethod
-    def get_precision_from_range(range):
+    def get_precision_from_range(range) -> int:
         """Calculate the precision based on the given range.
 
         Parameters:
@@ -218,7 +219,7 @@ class OptProbVisualSolver:
         return precision
 
     # Define a function to check optimization problem feasibility
-    def _check_feasablity(self):
+    def _check_feasablity(self) -> tuple:
         """
         Checks the feasibility of the model by performing the following steps:
         1. Generate values for x and y within the specified domains.
@@ -283,7 +284,7 @@ class OptProbVisualSolver:
             )
 
     # Define a function to solve an optimization problem using a numerical method
-    def _numerical_solver(self, initial_guess):
+    def _numerical_solver(self, initial_guess) -> scipy.optimize.OptimizeResult:
         """This function solves an optimization problem using numerical
         methods. It takes an initial guess for the solution and defines the
         equality constraint for the problem. The optimization problem is then
@@ -296,8 +297,8 @@ class OptProbVisualSolver:
             initial_guess (ndarray): The initial guess for the solution.
 
         Returns:
-            OptimizeResult: The result of the optimization problem, including
-                the optimal solution and other information.
+            OptimizeResult: The result of the optimization problem,
+            a `scipy.optimize.OptimizeResult` object
 
         Note:
             The maximum number of iterations used in `scipy.optimize` is set
@@ -321,7 +322,9 @@ class OptProbVisualSolver:
         return result
 
     # Define a function to generate a plotly figure object
-    def _get_plotly_fig(self, plot_type: str, args: list, **kwargs):
+    def _get_plotly_fig(
+        self, plot_type: str, args: list, **kwargs
+    ) -> Union[go.Figure, tuple]:
         """This function generates a plotly figure object of the specified
         type. The type of plot can be either "surface" or any other value. The
         function takes a list of arguments that depend on the type of plot. If
@@ -411,7 +414,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
     # Get contour paths, vertices, and tiles
     def _get_contour_paths_verticies_and_tiles(
         self, func, xmin, xmax, ymin, ymax, precision_type: str, level=0
-    ):
+    ) -> tuple:
         """Calculates contour paths, vertices, and tiles based on the provided
         function and input parameters.
 
@@ -500,7 +503,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
     # Calculate z-intersection and z-tiles for contour extrusion
     def _calculate_zintersec_ztiles(
         self, x_contour, y_contour, x_tiles, buff, rounding_deci
-    ):
+    ) -> tuple:
         """Calculates the intersection points of the contour with the objective
         function and generates new z values for each tile.
 
@@ -540,7 +543,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
     # Remove duplicate minima from a list
     @staticmethod
-    def remove_dup_minima(lst):
+    def remove_dup_minima(lst) -> list:
         """Removes duplicate minima from a given list.
 
         Args:
@@ -640,7 +643,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
     # Solve optimization problem graphically (Visual solver core function)
     def solve_graphically(
         self, omit_num_res=False, z_contour_tile_buff=10, round_deci=7
-    ):
+    ) -> list:
         """This function solves a graphically represented optimization problem.
 
         Parameters:
@@ -754,7 +757,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
     # Define function to get min and max buff
     @staticmethod
-    def _get_minmax_buff(buff):
+    def _get_minmax_buff(buff) -> tuple:
         """Returns the minimum and maximum values from the given input buffer.
 
         Args:
@@ -788,7 +791,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         z_buff: Union[int, tuple] = 3,
         x_buff: Union[int, tuple] = 3,
         y_buff: Union[int, tuple] = 3,
-    ):
+    ) -> tuple[go.Figure, dict[str, go.Figure]]:
         """This method takes in a list of results and a combination string as
         parameters, and returns a Plotly figure and a dictionary of figures.
 
@@ -1142,7 +1145,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
     # Define a function to calculate the numerical gradient
     @staticmethod
-    def numerical_gradient(func, x0, y0, h=1e-5):
+    def numerical_gradient(func, x0, y0, h=1e-5) -> tuple:
         """Calculate the numerical gradient of a 2D function at a given point
         (x0, y0).
 
@@ -1162,7 +1165,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
     # Define a function to find the closest point to a given target point from a set of points
     @staticmethod
-    def find_closest_point(points, target_point):
+    def find_closest_point(points, target_point) -> tuple:
         """Find the closest point to a given target point from a set of points.
 
         Parameters:
@@ -1194,7 +1197,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         max_iter=1000,
         alpha=0.1,
         tol=1e-6,
-    ):
+    ) -> list:
         """Solves the Projected Gradient Descent (PGD) algorithm to find the
         minimum of a function subject to a constraint.
 
@@ -1273,7 +1276,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         x_buff: Union[int, tuple] = 3,
         y_buff: Union[int, tuple] = 3,
         grad_field_scale: float = 0.2,
-    ):
+    ) -> go.Figure:
         """Visualize the projected gradient descent (PGD) steps.
 
         Args:
@@ -1682,7 +1685,7 @@ class TexPixToPython:
         )
 
     # Define a function to extract optimization problem functions from images
-    def convert_tex_to_python(self, img_path):
+    def convert_tex_to_python(self, img_path) -> dict[str, str]:
         """Converts a LaTeX optimization problem image to a Python dictionary
         of extracted functions.
 
@@ -1756,7 +1759,9 @@ class LLMSolver:
         }
 
     # Define a function to generate a report for the given optimization problem
-    def generate_report(self, obj_function: str, constraint_function: str, prog_bar):
+    def generate_report(
+        self, obj_function: str, constraint_function: str, prog_bar
+    ) -> list:
         """A function that generates a report based on the given objective
         function and constraint function.
 
