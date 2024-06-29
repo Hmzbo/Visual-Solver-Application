@@ -24,6 +24,21 @@ st.subheader(":red[Solve Problems & Generate Insightful Reports]")
 
 @st.cache_resource
 def verify_gemini_key(key):
+    """
+    A function that verifies the Gemini key by configuring the API key,
+    creating two GenerativeModel instances, test the key, setting the API key
+    in the environment, and returning the two GenerativeModel instances.
+
+    Args:
+        key (str): The Gemini API key to be verified.
+
+    Returns:
+        Tuple[genai.GenerativeModel, genai.GenerativeModel]: A tuple containing
+        two GenerativeModel instances if the verification is successful.
+
+    Raises:
+        Exception: If an error occurs during the verification process, an exception is raised.
+    """
     try:
         genai.configure(api_key=gemini_key)
         gemini_15_model = genai.GenerativeModel("gemini-1.5-pro")
@@ -443,7 +458,7 @@ with tab2:
             solv_precision_factor=settings["precision_multip"],
         )
         prog_bar.progress(10, text="Running feasability tests..")
-        opt._test_functions()
+        opt._test_func_domains()
         fg0_intersection_pts, g_contour_zero_values = opt._check_feasablity()
         num_opt_sol = opt._numerical_solver(initial_guess=(minx, miny))
 

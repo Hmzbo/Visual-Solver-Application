@@ -44,7 +44,7 @@ class OptProbVisualSolver:
             None
         """
 
-        # Check input variables type
+        # Check input variables types
         if not isinstance(x_domain, (list, tuple)):
             raise ValueError("'x_domain' must be a List or a Tuple.")
         if not isinstance(y_domain, (list, tuple)):
@@ -82,8 +82,11 @@ class OptProbVisualSolver:
         if len(x_domain) != 2 or len(y_domain) != 2:
             raise ValueError("Input variables 'x' and 'y' must be of length 2.")
 
+        # calculate x and y ranges
         x_range = x_domain[1] - x_domain[0]
         y_range = y_domain[1] - y_domain[0]
+
+        # initialize x and y precisions if not provided
         if x_precision is None:
             x_precision = self.get_precision_from_range(x_range)
         if y_precision is None:
@@ -134,9 +137,11 @@ class OptProbVisualSolver:
         x, y = variables
         return eval(self.constraint_func_string)
 
-    def _test_functions(self):
+    # Define a function to test domains
+    def _test_func_domains(self):
         """Test the objective and constraint functions by evaluating them at
-        the first point in the x and y domains.
+        the first point in the x and y domains, which will be used as
+        initialization for numerical solver.
 
         Raises:
             Exception: If the objective or constraint function uses variables
@@ -173,6 +178,7 @@ class OptProbVisualSolver:
                           be in constraint function domain)."
             )
 
+    # Define a function to calculate precision based on range
     @staticmethod
     def get_precision_from_range(range):
         """Calculate the precision based on the given range.
@@ -211,6 +217,7 @@ class OptProbVisualSolver:
             precision = 1000
         return precision
 
+    # Define a function to check optimization problem feasibility
     def _check_feasablity(self):
         """
         Checks the feasibility of the model by performing the following steps:
@@ -242,13 +249,15 @@ class OptProbVisualSolver:
         # Generate values for x and y
         x = np.linspace(self.x_domain[0], self.x_domain[1], self.x_solv_precision)
         y = np.linspace(self.y_domain[0], self.y_domain[1], self.y_solv_precision)
+
         # Create a grid of x and y values
         x_grid, y_grid = np.meshgrid(x, y)
+
         # Calculate the values of the function g(x, y) over the grid
         z_g = self.constraint_function([x_grid, y_grid])
-        g_contour = plt.contour(
-            x_grid, y_grid, z_g, levels=[0]
-        )  # Contour level corresponding to 0
+
+        # Contour level corresponding to 0
+        g_contour = plt.contour(x_grid, y_grid, z_g, levels=[0])
         g_contour_zero_values = g_contour.get_paths()[0].vertices
         plt.close()
         if g_contour.get_paths()[0].vertices.shape[0] == 0:
@@ -258,11 +267,10 @@ class OptProbVisualSolver:
             )
 
         intersection_pts = []
-
         for i in range(g_contour_zero_values.shape[0]):
             try:
-                f_guess = self.objective_function(g_contour_zero_values[i, :])
-                if ~np.isnan(f_guess):
+                zf_i = self.objective_function(g_contour_zero_values[i, :])
+                if ~np.isnan(zf_i):
                     intersection_pts.append(g_contour_zero_values[i, :])
             except:
                 pass
@@ -274,6 +282,7 @@ class OptProbVisualSolver:
                     with the objective function domain."
             )
 
+    # Define a function to solve an optimization problem using a numerical method
     def _numerical_solver(self, initial_guess):
         """This function solves an optimization problem using numerical
         methods. It takes an initial guess for the solution and defines the
@@ -309,9 +318,9 @@ class OptProbVisualSolver:
             constraints=eq_cons,
             options={"maxiter": 1000},
         )
-        # Optimal solution
         return result
 
+    # Define a function to generate a plotly figure object
     def _get_plotly_fig(self, plot_type: str, args: list, **kwargs):
         """This function generates a plotly figure object of the specified
         type. The type of plot can be either "surface" or any other value. The
@@ -399,6 +408,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             scatter = go.Scatter3d(x=x, y=y, z=z, **kwargs)
             return scatter
 
+    # Get contour paths, vertices, and tiles
     def _get_contour_paths_verticies_and_tiles(
         self, func, xmin, xmax, ymin, ymax, precision_type: str, level=0
     ):
@@ -440,9 +450,8 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         x_grid, y_grid = np.meshgrid(x, y)
         z = func([x_grid, y_grid])
 
-        contour = plt.contour(
-            x_grid, y_grid, z, levels=[level]
-        )  # Contour level corresponding to level 0
+        # Contour level corresponding to level (default is 0)
+        contour = plt.contour(x_grid, y_grid, z, levels=[level])
         contour_zero_values = contour.get_paths()[0].vertices
         x_contour = contour_zero_values[:, 0]
         y_contour = contour_zero_values[:, 1]
@@ -454,6 +463,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         x_contour_list = []
         y_contour_list = []
         j = 0
+        # split contour into multiple paths and create tiles
         for i in range(x_contour.shape[0] - 1):
             if (
                 np.abs(x_contour[i] - x_contour[i + 1]) > tol
@@ -487,6 +497,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             y_contour_tile_list,
         )
 
+    # Calculate z-intersection and z-tiles for contour extrusion
     def _calculate_zintersec_ztiles(
         self, x_contour, y_contour, x_tiles, buff, rounding_deci
     ):
@@ -527,6 +538,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             z_contour_tile_list.append(z_contour_tile)
         return z_intersection, z_contour_tile_list
 
+    # Remove duplicate minima from a list
     @staticmethod
     def remove_dup_minima(lst):
         """Removes duplicate minima from a given list.
@@ -569,6 +581,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
                 consecutive_count = 1
         return result
 
+    # Find local minima in a list
     @staticmethod
     def find_local_minima(numbers: list[float]) -> list[int]:
         """Finds the indices of local minima in a given list of numbers.
@@ -624,6 +637,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
                     j += 1
         return minima_indices
 
+    # Solve optimization problem graphically (Visual solver core function)
     def solve_graphically(
         self, omit_num_res=False, z_contour_tile_buff=10, round_deci=7
     ):
@@ -638,12 +652,18 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             results_list (list): List of results including contour paths,
             intersection points, minima indices, and tile lists.
         """
-        self._test_functions()
+        # Test function domains
+        self._test_func_domains()
+
+        # Check feasibility
         fg0_intersection_pts, g_contour_zero_values = self._check_feasablity()
+
+        # Solve with scipy numerical solver
         num_opt_sol = self._numerical_solver(initial_guess=fg0_intersection_pts[0])
         if np.isnan(num_opt_sol.fun) and not omit_num_res:
             return num_opt_sol
 
+        # Get contour paths with both plot and solv precisions
         (
             x_contour,
             y_contour,
@@ -676,6 +696,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             "solv",
         )
 
+        # Calculate z-intersection and z-ontour tiles using appropriate preicions
         z_intersection, z_contour_tile_list = self._calculate_zintersec_ztiles(
             x_contour,
             y_contour,
@@ -695,8 +716,8 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
         # Find minima
         local_minima_idx_list = []
-        # Find the intersection points
         index_pad = 0
+        # Find local minima for each contour path
         for xc, yc in zip(x_solv_contour_list, y_solv_contour_list):
             z_intersec_temp = self.objective_function([xc, yc])
             temp_local_minima_idx_list = self.find_local_minima(z_intersec_temp)
@@ -713,6 +734,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
                 'solv_precision_factor' is too low."
             )
             return None
+        # Find smallest local minima index
         smallest_local_minima = min(
             [z_solv_intersection[i] for i in flat_local_minima_idx_list]
         )
@@ -730,6 +752,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         ]
         return results_list
 
+    # Define function to get min and max buff
     @staticmethod
     def _get_minmax_buff(buff):
         """Returns the minimum and maximum values from the given input buffer.
@@ -757,6 +780,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             )
         return min_buff, max_buff
 
+    # Define function to visualize visual solver results
     def visualize(
         self,
         results: Union[list, None],
@@ -785,8 +809,8 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
         Args:
             - results: The restults returned by the `solve_graphycally` method.
-            - combination: The combination of the plots to be created. \
-                It can contain'f', 'g', 'sol', 'loc', 'sol-g0', or 'g0'. \
+            - combination: The combination of the plots to be created.
+                It can contain 'f', 'g', 'sol', 'loc', 'sol-g0', or 'g0'.
                 the combination has to be with '+' as separators.
             - z_buff: The buffer for the z-axis.
             - x_buff: The buffer for the x-axis.
@@ -794,12 +818,25 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
         Returns:
             tuple: A tuple of the Plotly figure and a dictionary of figures.
+
+        Info:
+            Plot combination options:
+                -'f': plot objective function.
+                -'g': plot constraint function.
+                -'sol': (main option to viesualize results) plot a local view ofthe solution.
+                -'g0': plot the extrusion of the feasible region along the z-axis.
+                -'loc': (can't be used alone) for a local view around the solution.
+                -'sol-g0': plot soltution without constraint extrusion (good for complex costly contours)
+            'local view' means that not the whole domain is used as axis limits,
+              but only a small neighborhood around the solution.
         """
 
+        # Set up buffer values for the x, y, and z axes
         xmin_buff, xmax_buff = self._get_minmax_buff(x_buff)
         ymin_buff, ymax_buff = self._get_minmax_buff(y_buff)
         zmin_buff, zmax_buff = self._get_minmax_buff(z_buff)
 
+        # Check if the results parameter is a list
         if isinstance(results, list):
             (
                 x_contour,
@@ -815,12 +852,15 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             plot_init = True
         else:
             plot_init = False
+
+        # Split the combination string into a list of elements and remove any duplicate elements
         combination_l = combination.split("+")
         combination_l = list(set(combination_l))
 
+        # Initialize an empty dictionary to store the figures
         figs = {}
+        # create figures depending on the combination
         if ("f" in combination_l) or plot_init:
-            ## plot fig for f and g with its contour separately on the user defined domain
             f_plot_kwargs = {
                 "colorscale": "Plotly3",
                 "name": "Objective<br>function",
@@ -1100,6 +1140,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         # Show the plot
         return fig, figs
 
+    # Define a function to calculate the numerical gradient
     @staticmethod
     def numerical_gradient(func, x0, y0, h=1e-5):
         """Calculate the numerical gradient of a 2D function at a given point
@@ -1119,6 +1160,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
         df_dy = (func((x0, y0 + h)) - func((x0, y0))) / h
         return df_dx, df_dy
 
+    # Define a function to find the closest point to a given target point from a set of points
     @staticmethod
     def find_closest_point(points, target_point):
         """Find the closest point to a given target point from a set of points.
@@ -1144,6 +1186,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
 
         return closest_point, closest_index
 
+    # Define a function to solve the Projected Gradient Descent (PGD) algorithm
     def solve_PGD(
         self,
         progress_bar,
@@ -1175,7 +1218,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
             visited during the algorithm.
         """
         steps = []
-        self._test_functions()
+        self._test_func_domains()
         fg0_intersection_pts, g_contour_zero_values = self._check_feasablity()
         x_solv_contour, y_solv_contour, _, _, _, _ = (
             self._get_contour_paths_verticies_and_tiles(
@@ -1222,6 +1265,7 @@ np.array([4, 5, 6]), np.array([7, 8, 9])])
                 prev_y = y
         return steps
 
+    # Define a function to visualize the projected gradient descent (PGD) steps
     def visualize_PGD(
         self,
         pgd_steps: list,
@@ -1637,6 +1681,7 @@ class TexPixToPython:
             candidate_count=1, max_output_tokens=200, temperature=0.1
         )
 
+    # Define a function to extract optimization problem functions from images
     def convert_tex_to_python(self, img_path):
         """Converts a LaTeX optimization problem image to a Python dictionary
         of extracted functions.
@@ -1710,6 +1755,7 @@ class LLMSolver:
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
         }
 
+    # Define a function to generate a report for the given optimization problem
     def generate_report(self, obj_function: str, constraint_function: str, prog_bar):
         """A function that generates a report based on the given objective
         function and constraint function.
