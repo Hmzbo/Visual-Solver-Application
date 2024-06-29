@@ -11,7 +11,6 @@ from google.generativeai.types import HarmBlockThreshold, HarmCategory
 from PIL import Image
 from plotly.subplots import make_subplots
 from scipy.optimize import minimize
-from tqdm import tqdm
 
 
 class OptProbVisualSolver:
@@ -1839,7 +1838,7 @@ class LLMSolver:
                 indicate if we found solutions or not and whether they are \
                 local or global.",
         ]
-        for i, step_inst in tqdm(enumerate(steps_instructions)):
+        for i, step_inst in enumerate(steps_instructions):
             prompt = f"The step number {i+1}: you need to {step_inst}. stick \
                 to the task and don't go beyond that, and use markdown \
                 formatting for your response."
