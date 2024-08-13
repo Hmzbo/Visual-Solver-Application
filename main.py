@@ -12,9 +12,9 @@ st.set_page_config(
     page_icon="📋",
     initial_sidebar_state="expanded",
     menu_items={
-        "Get Help": "https://www.extremelycoolapp.com/help",
-        "Report a bug": "https://www.extremelycoolapp.com/bug",
-        "About": "# This is a header. This is an *extremely* cool app!",
+        "Tutorial": "https://www.youtube.com/watch?v=oIj8c0d4DmA",
+        "Report a bug": "https://github.com/Hmzbo/Visual-Solver-Application/issues",
+        "About": "A graphical tool for solving optimization problems",
     },
 )
 
